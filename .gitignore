@@ -1,0 +1,10 @@
+# Python önbellek dosyaları
+__pycache__/
+*.pyc
+
+# Sanal ortam
+venv/
+env/
+
+# Mac sistem dosyaları (Eğer Mac kullanıyorsanız)
+.DS_Store
