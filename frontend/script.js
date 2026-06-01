@@ -13,9 +13,6 @@ const NUMERIC_IDS = [
 const PRED_MIN = 53;
 const PRED_MAX = 99;
 
-// ------------------------------------------------------------------
-// Çeviri sözlüğü
-// ------------------------------------------------------------------
 const I18N = {
   tr: {
     tag: "OLASILIK DERSİ · FİNAL PROJESİ",
@@ -42,6 +39,7 @@ const I18N = {
     hintLow: "Düşük tüketim — verimli bir senaryo.",
     hintMid: "Orta düzey tüketim — tipik bir durum.",
     hintHigh: "Yüksek tüketim — enerji tasarrufu için fırsat var.",
+    whyThisResult: "Tahmin Neden Böyle Çıktı?", // YENİ
   },
   en: {
     tag: "PROBABILITY COURSE · FINAL PROJECT",
@@ -68,10 +66,10 @@ const I18N = {
     hintLow: "Low consumption — an efficient scenario.",
     hintMid: "Moderate consumption — a typical case.",
     hintHigh: "High consumption — room for energy savings.",
+    whyThisResult: "Why did the prediction turn out this way?", // YENİ
   },
 };
 
-// Dropdown etiketleri (dile göre)
 const LABELS = {
   tr: {
     days: { Monday: "Pazartesi", Tuesday: "Salı", Wednesday: "Çarşamba",
@@ -91,20 +89,17 @@ const LABELS = {
   },
 };
 
-let lang = "tr";          // aktif dil
-let META = null;          // backend metadata (dil değişince dropdown yeniden çizmek için)
-let lastPrediction = null; // son tahmin (dil değişince yorumu güncellemek için)
+let lang = "tr";
+let META = null;
+let lastPrediction = null;
 
-// ------------------------------------------------------------------
-// Yardımcılar
-// ------------------------------------------------------------------
 function $(id) { return document.getElementById(id); }
 function t(key) { return I18N[lang][key]; }
 
 function bindSlider(id) {
   const el = $(id);
   const out = $(id + "_out");
-  const update = () => { out.textContent = el.value; };
+  const update = function() { out.textContent = el.value; };
   el.addEventListener("input", update);
   update();
 }
@@ -113,7 +108,7 @@ function fillSelect(id, values, labelMap, keepValue) {
   const sel = $(id);
   const prev = keepValue ? sel.value : null;
   sel.innerHTML = "";
-  values.forEach((v) => {
+  values.forEach(function(v) {
     const opt = document.createElement("option");
     opt.value = v;
     opt.textContent = labelMap ? (labelMap[v] ?? v) : v;
@@ -122,10 +117,9 @@ function fillSelect(id, values, labelMap, keepValue) {
   if (prev !== null) sel.value = prev;
 }
 
-// data-i18n öznitelikli tüm metinleri güncelle
 function applyTranslations() {
   document.documentElement.lang = lang;
-  document.querySelectorAll("[data-i18n]").forEach((el) => {
+  document.querySelectorAll("[data-i18n]").forEach(function(el) {
     const key = el.getAttribute("data-i18n");
     if (I18N[lang][key] !== undefined) el.textContent = I18N[lang][key];
   });
@@ -133,19 +127,25 @@ function applyTranslations() {
 
 function collectInputs() {
   const payload = {};
-  NUMERIC_IDS.forEach((id) => { payload[id] = parseFloat($(id).value); });
-  payload["Occupancy"] = parseInt($("Occupancy").value, 10);
-  payload["Hour"] = parseInt($("Hour").value, 10);
-  payload["Month"] = parseInt($("Month").value, 10);
-  payload["HVACUsage"] = $("HVACUsage").value;
-  payload["LightingUsage"] = $("LightingUsage").value;
-  payload["DayOfWeek"] = $("DayOfWeek").value;
-  payload["Holiday"] = $("Holiday").value;
-  payload["selected_model"] = $("SelectedModel").value;
+  NUMERIC_IDS.forEach(function(id) { payload[id] = parseFloat($(id).value); });
+  
+  // JSHint hatalarını önlemek için Dot Notation kullanıldı
+  payload.Occupancy = parseInt($("Occupancy").value, 10);
+  payload.Hour = parseInt($("Hour").value, 10);
+  payload.Month = parseInt($("Month").value, 10);
+  payload.HVACUsage = $("HVACUsage").value;
+  payload.LightingUsage = $("LightingUsage").value;
+  payload.DayOfWeek = $("DayOfWeek").value;
+  payload.Holiday = $("Holiday").value;
+  
+  // YENİ: Model Seçimi
+  const selModel = $("SelectedModel");
+  if (selModel && selModel.value) {
+      payload.selected_model = selModel.value;
+  }
   return payload;
 }
 
-// Dropdownları aktif dile göre (değerleri koruyarak) yeniden çiz
 function renderSelects(keepValues) {
   if (!META) return;
   const L = LABELS[lang];
@@ -153,37 +153,35 @@ function renderSelects(keepValues) {
   fillSelect("LightingUsage", META.categorical_options.LightingUsage, L.onoff, keepValues);
   fillSelect("DayOfWeek", META.categorical_options.DayOfWeek, L.days, keepValues);
   fillSelect("Holiday", META.categorical_options.Holiday, L.yesno, keepValues);
-  const months = Array.from({ length: 12 }, (_, i) => i + 1);
+  const months = Array.from({ length: 12 }, function(_, i) { return i + 1; });
   fillSelect("Month", months,
-    Object.fromEntries(months.map((m) => [m, L.months[m - 1]])), keepValues);
+    Object.fromEntries(months.map(function(m) { return [m, L.months[m - 1]]; })), keepValues);
   if (!keepValues) $("Month").value = 6;
 }
 
-// ------------------------------------------------------------------
-// Dil değiştirme
-// ------------------------------------------------------------------
 function setLang(newLang) {
   lang = newLang;
   $("langTR").classList.toggle("active", lang === "tr");
   $("langEN").classList.toggle("active", lang === "en");
   applyTranslations();
-  renderSelects(true);                       // değerleri koruyarak yeniden çiz
+  renderSelects(true);
   if (META) {
     $("modelName").textContent = t("bestModel") + META.best_model;
   }
-  if (lastPrediction !== null) showResult(lastPrediction);  // yorumu güncelle
+  if (lastPrediction !== null) showResult(lastPrediction);
 }
 
-// ------------------------------------------------------------------
-// Metadata
-// ------------------------------------------------------------------
 async function loadMetadata() {
   try {
     const res = await fetch(`${API}/api/metadata`);
     META = await res.json();
     $("modelName").textContent = t("bestModel") + META.best_model;
+    
+    // YENİ: Modelleri açılır menüye ekle
     const modelOptions = [META.best_model, ...Object.keys(META.metrics)];
-    fillSelect("SelectedModel", modelOptions);
+    const uniqueModels = [...new Set(modelOptions)]; // Tekrar edenleri siler
+    fillSelect("SelectedModel", uniqueModels);
+    
     renderSelects(false);
     renderMetrics(META.metrics, META.best_model);
   } catch (e) {
@@ -195,8 +193,10 @@ async function loadMetadata() {
 function renderMetrics(results, bestName) {
   const container = $("metricsBars");
   container.innerHTML = "";
-  const entries = Object.entries(results).sort((a, b) => b[1].R2 - a[1].R2);
-  entries.forEach(([name, m]) => {
+  const entries = Object.entries(results).sort(function(a, b) { return b[1].R2 - a[1].R2; });
+  entries.forEach(function(item) {
+    const name = item[0];
+    const m = item[1];
     const div = document.createElement("div");
     div.className = "metric-bar" + (name === bestName ? " best" : "");
     div.innerHTML = `
@@ -206,46 +206,37 @@ function renderMetrics(results, bestName) {
       </div>
       <div class="track"><div class="bar"></div></div>`;
     container.appendChild(div);
-    requestAnimationFrame(() => {
+    requestAnimationFrame(function() {
       div.querySelector(".bar").style.width = `${Math.max(0, m.R2) * 100}%`;
     });
   });
 }
 
-// ------------------------------------------------------------------
-// Tahmin
-// ------------------------------------------------------------------
 async function predict() {
   const payload = collectInputs();
   const btn = $("predictBtn");
-  
   btn.textContent = t("calculating");
   btn.disabled = true;
-  
   try {
     const res = await fetch(`${API}/api/predict`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
-    
     const data = await res.json();
-    
     if (data.success) {
       lastPrediction = data.prediction;
-      showResult(data.prediction); 
+      showResult(data.prediction);
       
+      // YENİ: SHAP AÇIKLAMALARI (JSHint hatasız)
       const shapContainer = $("shapContainer");
       const shapList = $("shapList");
-      shapList.innerHTML = ""; 
+      if (shapList) shapList.innerHTML = "";
       
       if (data.aciklamalar && data.aciklamalar.length > 0) {
-        shapContainer.style.display = "block"; 
-        
-        // DİKKAT: Ok fonksiyonu (=>) yerine klasik function() kullandık
+        if (shapContainer) shapContainer.style.display = "block";
         data.aciklamalar.forEach(function(item) {
-          const li = document.createElement("li"); 
-          
+          const li = document.createElement("li");
           const isPositive = item.etki > 0;
           const sign = isPositive ? "+" : "";
           const colorClass = isPositive ? "effect-positive" : "effect-negative";
@@ -254,12 +245,10 @@ async function predict() {
             <span class="feature-name">${item.ozellik}</span>
             <span class="${colorClass}">${sign}${item.etki.toFixed(2)} kWh</span>
           `;
-          
           shapList.appendChild(li);
         });
-        
       } else {
-        shapContainer.style.display = "none";
+        if (shapContainer) shapContainer.style.display = "none";
       }
       
     } else {
@@ -292,14 +281,11 @@ function showResult(value) {
   $("resultHint").textContent = hint;
 }
 
-// ------------------------------------------------------------------
-// Rastgele senaryo
-// ------------------------------------------------------------------
 async function randomScenario() {
   try {
     const res = await fetch(`${API}/api/random`);
     const s = await res.json();
-    NUMERIC_IDS.forEach((id) => {
+    NUMERIC_IDS.forEach(function(id) {
       if (s[id] !== undefined) {
         $(id).value = s[id];
         $(id + "_out").textContent = s[id];
@@ -316,17 +302,14 @@ async function randomScenario() {
   }
 }
 
-// ------------------------------------------------------------------
-// Başlangıç
-// ------------------------------------------------------------------
 function init() {
   NUMERIC_IDS.forEach(bindSlider);
   applyTranslations();
   loadMetadata();
   $("predictBtn").addEventListener("click", predict);
   $("randomBtn").addEventListener("click", randomScenario);
-  $("langTR").addEventListener("click", () => setLang("tr"));
-  $("langEN").addEventListener("click", () => setLang("en"));
+  $("langTR").addEventListener("click", function() { setLang("tr"); });
+  $("langEN").addEventListener("click", function() { setLang("en"); });
 }
 
 document.addEventListener("DOMContentLoaded", init);

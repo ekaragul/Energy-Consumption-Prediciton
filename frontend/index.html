@@ -10,18 +10,15 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <!-- Arka plan ışıltı katmanı -->
   <div class="glow glow-1"></div>
   <div class="glow glow-2"></div>
 
-  <!-- Dil değiştirme butonu -->
   <div class="lang-switch">
     <button id="langTR" class="lang-btn active">TR</button>
     <button id="langEN" class="lang-btn">EN</button>
   </div>
 
   <div class="container">
-    <!-- Başlık -->
     <header class="hero">
       <div class="hero-tag" data-i18n="tag">OLASILIK DERSİ · FİNAL PROJESİ</div>
       <h1><span data-i18n="title1">Enerji Tüketimi </span><span data-i18n="title2">Tahmini</span></h1>
@@ -36,14 +33,12 @@
     </header>
 
     <div class="grid">
-      <!-- SOL: Girdi paneli -->
       <section class="panel input-panel">
         <div class="panel-head">
           <h2 data-i18n="inputParams">Girdi Parametreleri</h2>
           <button id="randomBtn" class="btn-ghost" data-i18n="randomBtn">⚡ Rastgele Senaryo</button>
         </div>
 
-        <!-- Sayısal alanlar (slider) -->
         <div class="fields">
           <div class="field">
             <label><span data-i18n="temp">Sıcaklık</span> <span class="unit">°C</span></label>
@@ -52,7 +47,6 @@
               <output id="Temperature_out">25</output>
             </div>
           </div>
-
           <div class="field">
             <label><span data-i18n="humidity">Nem</span> <span class="unit">%</span></label>
             <div class="slider-row">
@@ -60,7 +54,6 @@
               <output id="Humidity_out">45</output>
             </div>
           </div>
-
           <div class="field">
             <label><span data-i18n="area">Bina Alanı</span> <span class="unit">ft²</span></label>
             <div class="slider-row">
@@ -68,7 +61,6 @@
               <output id="SquareFootage_out">1500</output>
             </div>
           </div>
-
           <div class="field">
             <label><span data-i18n="occupancy">Doluluk</span> <span class="unit" data-i18n="people">kişi</span></label>
             <div class="slider-row">
@@ -76,7 +68,6 @@
               <output id="Occupancy_out">5</output>
             </div>
           </div>
-
           <div class="field">
             <label><span data-i18n="renewable">Yenilenebilir Enerji</span> <span class="unit">kWh</span></label>
             <div class="slider-row">
@@ -84,7 +75,6 @@
               <output id="RenewableEnergy_out">15</output>
             </div>
           </div>
-
           <div class="field">
             <label><span data-i18n="hour">Saat</span> <span class="unit">0–23</span></label>
             <div class="slider-row">
@@ -94,7 +84,6 @@
           </div>
         </div>
 
-        <!-- Kategorik alanlar (dropdown / toggle) -->
         <div class="selects">
           <div class="select-field">
             <label data-i18n="hvac">HVAC (Isıtma/Soğutma)</label>
@@ -116,6 +105,7 @@
             <label data-i18n="month">Ay</label>
             <select id="Month"></select>
           </div>
+          
           <div class="select-field" style="grid-column: 1 / -1; margin-top: 10px; border-top: 1px dashed var(--border); padding-top: 15px;">
             <label style="color: var(--accent);">Yapay Zeka Modeli</label>
             <select id="SelectedModel"></select>
@@ -125,7 +115,6 @@
         <button id="predictBtn" class="btn-primary" data-i18n="predictBtn">Tahmin Et →</button>
       </section>
 
-      <!-- SAĞ: Sonuç paneli -->
       <section class="panel result-panel">
         <div class="result-card" id="resultCard">
           <div class="result-label" data-i18n="resultLabel">TAHMİNİ TÜKETİM</div>
@@ -142,15 +131,13 @@
           <p class="result-hint" id="resultHint" data-i18n="resultHint">
             Parametreleri ayarlayıp "Tahmin Et" butonuna basın.
           </p>
-          
+
           <div id="shapContainer" class="shap-container" style="display: none;">
-          <div class="shap-title" data-i18n="whyThisResult">Tahmin Neden Böyle Çıktı?</div>
-          <ul id="shapList" class="shap-list"></ul>
-        </div>
-          
+            <div class="shap-title" data-i18n="whyThisResult">Tahmin Neden Böyle Çıktı?</div>
+            <ul id="shapList" class="shap-list"></ul>
+          </div>
         </div>
 
-        <!-- Model performans tablosu -->
         <div class="metrics-card">
           <h3 data-i18n="modelCompare">Model Karşılaştırması</h3>
           <p class="metrics-sub" data-i18n="modelCompareSub">Test verisi üzerinde R² skoru (yüksek = daha iyi)</p>
@@ -159,11 +146,8 @@
       </section>
     </div>
 
-
-
 	<div class="heatmap">
-			
-	<img src="/api/heatmap" alt="Model Korelasyon Isı Haritası" style="max-width: 100%; border-radius: 12px; border: 1px solid var(--border);">
+	    <img src="/api/heatmap" alt="Model Korelasyon Isı Haritası" style="max-width: 100%; border-radius: 12px; border: 1px solid var(--border);">
 	</div>
 
     <footer class="footer">

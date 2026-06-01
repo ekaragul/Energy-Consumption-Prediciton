@@ -412,6 +412,7 @@ select:focus { outline: none; border-color: var(--accent); }
 }
 
 /* ---------------- SHAP Açıklama Kartları ---------------- */
+/* ---------------- SHAP Açıklama Kartları (EN ALTA YAPIŞTIRIN) ---------------- */
 .shap-container {
   margin-top: 24px;
   padding-top: 16px;
