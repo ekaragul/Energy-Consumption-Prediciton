@@ -119,6 +119,16 @@ def trainTest(dosya_yolu):
     super_model = StackingRegressor(estimators=optimize_modeller, final_estimator=Ridge())
     super_model.fit(X, y)
     print("✔ Süper Model başarıyla eğitildi!")
+
+    # --- YENİ EKLENEN ANINDA TEST BÖLÜMÜ ---
+    print("⏳ Süper Modelin Çapraz Doğrulama (CV) sınavı yapılıyor (Bu biraz sürebilir)...")
+    # Mevcut kfold veya cv=5 ayarınızla modelin daha önce görmediği verilerdeki performansını ölçüyoruz
+    super_r2 = cross_val_score(super_model, X, y, cv=5, scoring='r2').mean()
+    print(f"🏆 SÜPER MODELİN R² SKORU: {super_r2:.4f}")
+    
+    # Web sitesindeki tabloya gitmesi için şampiyonun skorunu sözlüğe ekliyoruz!
+    skorlar["Süper Model (Stacking)"] = super_r2
+    # --------------------------------------
     
     # 🌟 YENİ: Arayüzden seçilebilmesi için TÜM modelleri tam veriyle eğitip sözlükte topluyoruz
     kaydedilecek_modeller = {}
