@@ -8,3 +8,8 @@ env/
 
 # Mac sistem dosyaları (Eğer Mac kullanıyorsanız)
 .DS_Store
+
+
+
+
+catboost_info/
