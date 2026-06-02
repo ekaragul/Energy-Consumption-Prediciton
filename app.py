@@ -19,8 +19,10 @@ FRONTEND_DIR = os.path.join(APP_DIR, "frontend")
 
 PREPROCESS_SCRIPT = os.path.join(APP_DIR, "preProcess", "preProcess.py")
 MODELTRAIN_SCRIPT = os.path.join(APP_DIR, "modelTrain", "modelTrain.py")
+RESIDUAL_SCRIPT = os.path.join(APP_DIR, "residualAnalysis","residualAnalysis.py")
 MODEL_BUNDLE_PATH = os.path.join(APP_DIR, "trainedModel", "trainedModel.joblib")
 SCALER_BUNDLE_PATH = os.path.join(APP_DIR, "trainedModel", "scaler.joblib")
+
 
 GLOBAL_SCALER = None
 GLOBAL_MODELLER = {}
@@ -31,11 +33,16 @@ GLOBAL_SKORLAR = {}
 def otomatik_boru_hatti_calistir():
     try:
         print("\n" + "="*50)
-        print("⚙️ ADIM 1/2: Veri Ön İşleme başlatılıyor...")
+        print("⚙️ ADIM 1/3: Veri Ön İşleme başlatılıyor...")
         subprocess.run([sys.executable, PREPROCESS_SCRIPT], check=True)
         
-        print("\n⚙️ ADIM 2/2: Model Eğitimi başlatılıyor...")
+        print("\n⚙️ ADIM 2/3: Model Eğitimi başlatılıyor...")
         subprocess.run([sys.executable, MODELTRAIN_SCRIPT], check=True)
+
+        print("\n⚙️ ADIM 3/3: Kalıntı analizi başlatılıyor...")
+        subprocess.run([sys.executable, RESIDUAL_SCRIPT], check=True)
+
+        
         print("="*50 + "\n")
     except subprocess.CalledProcessError as e:
         print(f"\n❌ KRİTİK HATA: Boru hattında bir sorun oluştu! {e}")
@@ -243,6 +250,13 @@ def get_heatmap():
     if os.path.exists(heatmap_path):
         return send_file(heatmap_path, mimetype='image/png')
     return "Isı haritası bulunamadı", 404
+
+@app.route("/api/residual")
+def get_residual():
+    residual_path = os.path.join(APP_DIR, "residualAnalysis", "RESIDUALS.png")
+    if os.path.exists(residual_path):
+        return send_file(residual_path, mimetype='image/png')
+    return "Kalıntı haritası bulunamadı", 404
 
 if __name__ == "__main__":
     otomatik_boru_hatti_calistir()

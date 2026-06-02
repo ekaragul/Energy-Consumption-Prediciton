@@ -411,6 +411,12 @@ select:focus { outline: none; border-color: var(--accent); }
   margin-right: auto;
 }
 
+.residual {
+  
+  margin-left: auto;
+  margin-right: auto;
+}
+
 /* ---------------- SHAP Açıklama Kartları ---------------- */
 /* ---------------- SHAP Açıklama Kartları (EN ALTA YAPIŞTIRIN) ---------------- */
 .shap-container {
